@@ -1,0 +1,18 @@
+# Permissões
+
+Permissões iniciais:
+
+- `USUARIO_VISUALIZAR`, `USUARIO_CRIAR`, `USUARIO_EDITAR`, `USUARIO_INATIVAR`
+- `PERMISSAO_CONFIGURAR`
+- `PEDIDO_CRIAR`, `PEDIDO_VISUALIZAR_PROPRIOS`, `PEDIDO_VISUALIZAR_TODOS`
+- `PEDIDO_EDITAR_PROPRIOS`, `PEDIDO_EDITAR_TODOS`, `PEDIDO_EXCLUIR`, `PEDIDO_ALTERAR_STATUS`, `PEDIDO_CANCELAR`
+- `EMBALAGEM_VISUALIZAR`, `EMBALAGEM_CRIAR`, `EMBALAGEM_EDITAR`, `EMBALAGEM_INATIVAR`
+- `MOEDA_VISUALIZAR`, `MOEDA_CRIAR`, `MOEDA_EDITAR`, `MOEDA_INATIVAR`
+- `PRODUTO_VISUALIZAR`, `PRODUTO_CRIAR`, `PRODUTO_EDITAR`, `PRODUTO_INATIVAR`
+- `RELATORIO_VISUALIZAR`, `HISTORICO_VISUALIZAR`
+
+Papéis iniciais:
+
+- Administrador: todas as permissões.
+- Gestor: visualização geral, status, histórico, relatórios e consulta de cadastros.
+- Representante: criar pedido, ver próprios pedidos, editar/cancelar próprios quando a regra permitir.

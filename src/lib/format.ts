@@ -9,7 +9,9 @@ export function formatDateBr(value: Date | string | null | undefined) {
 
 export function formatMonthYearBr(value: Date | string | null | undefined) {
   if (!value) return "-";
-  return format(new Date(value), "MM/yyyy", { locale: ptBR });
+  const date = new Date(value);
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  return `${month}/${date.getUTCFullYear()}`;
 }
 
 export function formatDateTimeBr(value: Date | string | null | undefined) {

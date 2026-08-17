@@ -48,6 +48,7 @@ export function SearchableSelect({
   const [open, setOpen] = useState(false);
   const [menuRect, setMenuRect] = useState<DOMRect | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const normalizedQuery = normalizeSearch(query);
   const selected = options.find((option) => option.id === value);
   const disabledSet = useMemo(() => new Set(disabledValues.filter(Boolean)), [disabledValues]);
@@ -67,7 +68,8 @@ export function SearchableSelect({
       if (rect) setMenuRect(rect);
     }
     function handlePointerDown(event: PointerEvent) {
-      if (containerRef.current?.contains(event.target as Node)) return;
+      const target = event.target as Node;
+      if (containerRef.current?.contains(target) || menuRef.current?.contains(target)) return;
       setOpen(false);
       setQuery("");
     }
@@ -101,6 +103,7 @@ export function SearchableSelect({
       </button>
       {open && menuRect ? createPortal(
         <div
+          ref={menuRef}
           className="fixed z-[100] rounded-md border bg-background p-2 shadow-lg"
           style={{ left: menuRect.left, top: menuRect.bottom + 4, width: menuRect.width }}
         >

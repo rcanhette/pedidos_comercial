@@ -90,13 +90,30 @@ async function resolveOrderProduct(tx: Prisma.TransactionClient, input: OrderCre
 }
 
 async function resolveOrderAuxiliaries(tx: Prisma.TransactionClient, input: OrderCreateInput) {
-  const [contractType, rawMaterialClosing] = await Promise.all([
+  const [contractType, rawMaterialClosing, salesResponsible] = await Promise.all([
     tx.contractType.findFirst({ where: { id: input.contractTypeId, active: true } }),
-    tx.rawMaterialClosing.findFirst({ where: { id: input.rawMaterialClosingId, active: true } })
+    tx.rawMaterialClosing.findFirst({ where: { id: input.rawMaterialClosingId, active: true } }),
+    resolveOrderSalesResponsible(tx, input)
   ]);
   if (!contractType) throw new Error("Tipo de contrato ativo não encontrado.");
   if (!rawMaterialClosing) throw new Error("Tipo de MP ativo não encontrado.");
-  return { contractType, rawMaterialClosing };
+  return { contractType, rawMaterialClosing, salesResponsible };
+}
+
+async function resolveOrderSalesResponsible(tx: Prisma.TransactionClient, input: OrderCreateInput) {
+  if (!input.salesResponsibleId) return null;
+  if (input.salesResponsibleId !== NEW_RECORD_VALUE) {
+    const salesResponsible = await tx.salesResponsible.findFirst({ where: { id: input.salesResponsibleId, active: true } });
+    if (!salesResponsible) throw new Error("Responsável pela venda ativo não encontrado.");
+    return salesResponsible;
+  }
+
+  const name = input.newSalesResponsibleName?.trim();
+  if (!name) throw new Error("Informe o responsável pela venda.");
+
+  const existing = await tx.salesResponsible.findFirst({ where: { name: { equals: name, mode: "insensitive" } } });
+  if (existing) return tx.salesResponsible.update({ where: { id: existing.id }, data: { name, active: true } });
+  return tx.salesResponsible.create({ data: { name, active: true } });
 }
 
 async function buildTechnicalItems(tx: Prisma.TransactionClient, input: OrderCreateInput, options: { requireItems: boolean }) {
@@ -186,6 +203,8 @@ export async function createOrder(user: CurrentUser, input: OrderCreateInput) {
         representativeName: user.fullName,
         createdById: user.id,
         customerId: customer.id,
+        salesResponsibleId: auxiliaries.salesResponsible?.id,
+        salesResponsibleNameSnapshot: auxiliaries.salesResponsible?.name,
         contractTypeId: auxiliaries.contractType.id,
         contractTypeNameSnapshot: auxiliaries.contractType.name,
         rawMaterialClosingId: auxiliaries.rawMaterialClosing.id,
@@ -263,6 +282,8 @@ export async function updateOrder(user: CurrentUser, orderId: string, input: Ord
 
     const nextData = {
       customerId: customer.id,
+      salesResponsibleId: auxiliaries.salesResponsible?.id ?? null,
+      salesResponsibleNameSnapshot: auxiliaries.salesResponsible?.name ?? null,
       contractTypeId: auxiliaries.contractType.id,
       contractTypeNameSnapshot: auxiliaries.contractType.name,
       rawMaterialClosingId: auxiliaries.rawMaterialClosing.id,
@@ -293,6 +314,8 @@ export async function updateOrder(user: CurrentUser, orderId: string, input: Ord
 
     const updateData: Prisma.OrderUpdateInput = {
       customer: { connect: { id: nextData.customerId } },
+      salesResponsible: nextData.salesResponsibleId ? { connect: { id: nextData.salesResponsibleId } } : { disconnect: true },
+      salesResponsibleNameSnapshot: nextData.salesResponsibleNameSnapshot,
       contractType: { connect: { id: nextData.contractTypeId } },
       contractTypeNameSnapshot: nextData.contractTypeNameSnapshot,
       rawMaterialClosing: { connect: { id: nextData.rawMaterialClosingId } },
@@ -325,6 +348,8 @@ export async function updateOrder(user: CurrentUser, orderId: string, input: Ord
     const trackedFields: Array<keyof typeof nextData> = [
       "contractTypeId",
       "contractTypeNameSnapshot",
+      "salesResponsibleId",
+      "salesResponsibleNameSnapshot",
       "rawMaterialClosingId",
       "rawMaterialClosingNameSnapshot",
       "customerName",

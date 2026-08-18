@@ -23,6 +23,7 @@ export const technicalListReportItemSelect = {
       sapOrderNumber: true,
       customerName: true,
       representativeName: true,
+      salesResponsibleNameSnapshot: true,
       solicitationAt: true,
       pickupForecast: true,
       currencyCodeSnapshot: true,

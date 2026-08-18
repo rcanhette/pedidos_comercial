@@ -207,6 +207,10 @@ function SortLink({ href, children }: { href: string; children: React.ReactNode 
   );
 }
 
+function reportRepresentative(order: Pick<SalesReportOrder, "salesResponsibleNameSnapshot" | "representativeName">) {
+  return order.salesResponsibleNameSnapshot?.trim() || order.representativeName?.trim() || "Não informado";
+}
+
 function SalesReportTable({ orders, sortHref }: { orders: SalesReportOrder[]; sortHref: (sort: string) => string }) {
   if (orders.length === 0) {
     return <div className="rounded-lg border bg-background p-8 text-center text-muted-foreground">Nenhum pedido encontrado para os filtros selecionados.</div>;
@@ -235,7 +239,7 @@ function SalesReportTable({ orders, sortHref }: { orders: SalesReportOrder[]; so
             <tr key={order.id} className="border-t">
               <td className="p-3 font-medium">{order.sapOrderNumber || "Não informado"}</td>
               <td className="p-3">{formatDateTimeBr(order.solicitationAt)}</td>
-              <td className="p-3">{order.representativeName || "Não informado"}</td>
+              <td className="p-3">{reportRepresentative(order)}</td>
               <td className="p-3">{order.customerName || "Não informado"}</td>
               <td className="p-3">{order.productNameSnapshot || "Não informado"}</td>
               <td className="p-3">{order.contractTypeNameSnapshot || "Não informado"}</td>

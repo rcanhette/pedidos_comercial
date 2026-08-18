@@ -63,13 +63,13 @@ describe("relatório da lista técnica", () => {
     expect(service).not.toContain("sequentialId");
   });
 
-  it("usa representante original do pedido e repete em todas as linhas", () => {
+  it("usa responsável pela venda antes do usuário que gerou o pedido", () => {
     const items = [
-      { order: { representativeName: "JOÃO DA SILVA", createdBy: { fullName: "MARIA SOUZA" }, commissionUsdCents: 25000 } },
-      { order: { representativeName: "JOÃO DA SILVA", createdBy: { fullName: "CARLOS PEREIRA" }, commissionUsdCents: 25000 } }
+      { order: { salesResponsibleNameSnapshot: "ANA VENDAS", representativeName: "JOÃO DA SILVA", createdBy: { fullName: "MARIA SOUZA" }, commissionUsdCents: 25000 } },
+      { order: { salesResponsibleNameSnapshot: null, representativeName: "JOÃO DA SILVA", createdBy: { fullName: "CARLOS PEREIRA" }, commissionUsdCents: 25000 } }
     ];
 
-    expect(items.map(technicalListReportRepresentative)).toEqual(["JOÃO DA SILVA", "JOÃO DA SILVA"]);
+    expect(items.map(technicalListReportRepresentative)).toEqual(["ANA VENDAS", "JOÃO DA SILVA"]);
     expect(items.map(technicalListReportCommission)).toEqual(["US$ 250,00", "US$ 250,00"]);
   });
 

@@ -14,6 +14,7 @@ export type CatalogRecentOptionIds = {
   contractTypes: string[];
   rawMaterialClosings: string[];
   rawMaterials: string[];
+  salesResponsibles: string[];
 };
 
 function addRecentId(target: string[], id: string | null, limit = 5) {
@@ -32,7 +33,8 @@ export async function recentCatalogOptionIds(): Promise<CatalogRecentOptionIds> 
         packageId: true,
         currencyId: true,
         contractTypeId: true,
-        rawMaterialClosingId: true
+        rawMaterialClosingId: true,
+        salesResponsibleId: true
       }
     }),
     prisma.orderRawMaterial.findMany({
@@ -49,7 +51,8 @@ export async function recentCatalogOptionIds(): Promise<CatalogRecentOptionIds> 
     currencies: [],
     contractTypes: [],
     rawMaterialClosings: [],
-    rawMaterials: []
+    rawMaterials: [],
+    salesResponsibles: []
   };
 
   for (const order of orders) {
@@ -59,6 +62,7 @@ export async function recentCatalogOptionIds(): Promise<CatalogRecentOptionIds> 
     addRecentId(recent.currencies, order.currencyId);
     addRecentId(recent.contractTypes, order.contractTypeId);
     addRecentId(recent.rawMaterialClosings, order.rawMaterialClosingId);
+    addRecentId(recent.salesResponsibles, order.salesResponsibleId);
   }
   for (const item of technicalItems) addRecentId(recent.rawMaterials, item.rawMaterialId);
 
@@ -67,20 +71,21 @@ export async function recentCatalogOptionIds(): Promise<CatalogRecentOptionIds> 
 
 export async function catalogOptions({ includeInactive = false }: { includeInactive?: boolean } = {}) {
   const where = includeInactive ? undefined : { active: true };
-  const [customers, products, packages, currencies, contractTypes, rawMaterialClosings, rawMaterials] = await Promise.all([
+  const [customers, products, packages, currencies, contractTypes, rawMaterialClosings, rawMaterials, salesResponsibles] = await Promise.all([
     prisma.customer.findMany({ where, orderBy: { name: "asc" } }),
     prisma.product.findMany({ where, orderBy: { name: "asc" } }),
     prisma.package.findMany({ where, orderBy: { name: "asc" } }),
     prisma.currency.findMany({ where, orderBy: { code: "asc" } }),
     prisma.contractType.findMany({ where, orderBy: { name: "asc" } }),
     prisma.rawMaterialClosing.findMany({ where, orderBy: { name: "asc" } }),
-    prisma.rawMaterial.findMany({ where, orderBy: { name: "asc" } })
+    prisma.rawMaterial.findMany({ where, orderBy: { name: "asc" } }),
+    prisma.salesResponsible.findMany({ where, orderBy: { name: "asc" } })
   ]);
-  return { customers, products, packages, currencies, contractTypes, rawMaterialClosings, rawMaterials, recentOptionIds: await recentCatalogOptionIds() };
+  return { customers, products, packages, currencies, contractTypes, rawMaterialClosings, rawMaterials, salesResponsibles, recentOptionIds: await recentCatalogOptionIds() };
 }
 
 export const catalogPageSize = 50;
-export type CatalogKind = "customers" | "products" | "packages" | "currencies" | "contractTypes" | "rawMaterialClosings" | "rawMaterials";
+export type CatalogKind = "customers" | "products" | "packages" | "currencies" | "contractTypes" | "rawMaterialClosings" | "rawMaterials" | "salesResponsibles";
 
 export type CatalogListQuery = {
   page?: number;
@@ -113,6 +118,7 @@ export async function listCatalog(kind: "currencies", query?: CatalogListQuery):
 export async function listCatalog(kind: "contractTypes", query?: CatalogListQuery): Promise<CatalogListResult<Awaited<ReturnType<typeof prisma.contractType.findMany>>[number]>>;
 export async function listCatalog(kind: "rawMaterialClosings", query?: CatalogListQuery): Promise<CatalogListResult<Awaited<ReturnType<typeof prisma.rawMaterialClosing.findMany>>[number]>>;
 export async function listCatalog(kind: "rawMaterials", query?: CatalogListQuery): Promise<CatalogListResult<Awaited<ReturnType<typeof prisma.rawMaterial.findMany>>[number]>>;
+export async function listCatalog(kind: "salesResponsibles", query?: CatalogListQuery): Promise<CatalogListResult<Awaited<ReturnType<typeof prisma.salesResponsible.findMany>>[number]>>;
 export async function listCatalog(kind: CatalogKind, query: CatalogListQuery = {}) {
   const { page, search } = normalizedCatalogQuery(query);
   const pagination = { skip: (page - 1) * catalogPageSize, take: catalogPageSize };
@@ -145,6 +151,11 @@ export async function listCatalog(kind: CatalogKind, query: CatalogListQuery = {
   if (kind === "rawMaterials") {
     const where: Prisma.RawMaterialWhereInput | undefined = search ? { name: { contains: search, mode: "insensitive" } } : undefined;
     const [items, total] = await prisma.$transaction([prisma.rawMaterial.findMany({ where, orderBy: { name: "asc" }, ...pagination }), prisma.rawMaterial.count({ where })]);
+    return pageResult(items, total, page, search);
+  }
+  if (kind === "salesResponsibles") {
+    const where: Prisma.SalesResponsibleWhereInput | undefined = search ? { name: { contains: search, mode: "insensitive" } } : undefined;
+    const [items, total] = await prisma.$transaction([prisma.salesResponsible.findMany({ where, orderBy: { name: "asc" }, ...pagination }), prisma.salesResponsible.count({ where })]);
     return pageResult(items, total, page, search);
   }
 
@@ -310,13 +321,15 @@ async function assertCurrencyNotDuplicated(code: string, currentId?: string) {
   if (existing) throw new Error("Moeda já cadastrada com este código.");
 }
 
-async function assertSimpleCatalogNotDuplicated(model: "contractType" | "rawMaterialClosing" | "rawMaterial", name: string, duplicateMessage: string, currentId?: string) {
+async function assertSimpleCatalogNotDuplicated(model: "contractType" | "rawMaterialClosing" | "rawMaterial" | "salesResponsible", name: string, duplicateMessage: string, currentId?: string) {
   const where = { id: currentId ? { not: currentId } : undefined, name: { equals: name, mode: "insensitive" as const } };
   const existing = model === "contractType"
     ? await prisma.contractType.findFirst({ where, select: { id: true } })
     : model === "rawMaterialClosing"
       ? await prisma.rawMaterialClosing.findFirst({ where, select: { id: true } })
-      : await prisma.rawMaterial.findFirst({ where, select: { id: true } });
+      : model === "rawMaterial"
+        ? await prisma.rawMaterial.findFirst({ where, select: { id: true } })
+        : await prisma.salesResponsible.findFirst({ where, select: { id: true } });
   if (existing) throw new Error(duplicateMessage);
 }
 
@@ -415,4 +428,32 @@ export async function deleteRawMaterial(user: CurrentUser, id: string) {
   if (ordersCount > 0) await prisma.rawMaterial.update({ where: { id }, data: { active: false } });
   else await prisma.rawMaterial.delete({ where: { id } });
   await auditLog({ action: "RAW_MATERIAL_DELETED", entity: "RawMaterial", entityId: id, userId: user.id });
+}
+
+export async function createSalesResponsible(user: CurrentUser, formData: FormData) {
+  assertPermission(user, "RESPONSAVEL_VENDA_CRIAR");
+  const data = simpleCatalogSchema.parse(Object.fromEntries(formData));
+  try {
+    await assertSimpleCatalogNotDuplicated("salesResponsible", data.name, "Responsável pela venda já cadastrado.");
+    const item = await prisma.salesResponsible.create({ data });
+    await auditLog({ action: "SALES_RESPONSIBLE_CREATED", entity: "SalesResponsible", entityId: item.id, userId: user.id, afterData: JSON.stringify({ name: item.name }) });
+    return item;
+  } catch (error) { throw uniqueMessage(error, "Responsável pela venda"); }
+}
+
+export async function updateSalesResponsible(user: CurrentUser, id: string, formData: FormData) {
+  assertPermission(user, "RESPONSAVEL_VENDA_EDITAR");
+  const data = simpleCatalogSchema.parse(Object.fromEntries(formData));
+  try {
+    await assertSimpleCatalogNotDuplicated("salesResponsible", data.name, "Responsável pela venda já cadastrado.", id);
+    return await prisma.salesResponsible.update({ where: { id }, data });
+  } catch (error) { throw uniqueMessage(error, "Responsável pela venda"); }
+}
+
+export async function deleteSalesResponsible(user: CurrentUser, id: string) {
+  assertPermission(user, "RESPONSAVEL_VENDA_EXCLUIR");
+  const ordersCount = await prisma.order.count({ where: { salesResponsibleId: id } });
+  if (ordersCount > 0) await prisma.salesResponsible.update({ where: { id }, data: { active: false } });
+  else await prisma.salesResponsible.delete({ where: { id } });
+  await auditLog({ action: "SALES_RESPONSIBLE_DELETED", entity: "SalesResponsible", entityId: id, userId: user.id });
 }

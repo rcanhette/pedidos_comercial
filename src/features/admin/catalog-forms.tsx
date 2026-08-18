@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useActionState, useEffect, useState, useTransition } from "react";
-import type { ContractType, Currency, Customer, Package, Product, RawMaterial, RawMaterialClosing } from "@prisma/client";
-import { createContractTypeAction, createCurrencyAction, createCustomerAction, createPackageAction, createProductAction, createRawMaterialAction, createRawMaterialClosingAction, deleteContractTypeAction, deleteCurrencyAction, deleteCustomerAction, deletePackageAction, deleteProductAction, deleteRawMaterialAction, deleteRawMaterialClosingAction, updateContractTypeAction, updateCurrencyAction, updateCustomerAction, updatePackageAction, updateProductAction, updateRawMaterialAction, updateRawMaterialClosingAction, type ActionState } from "@/app/actions";
+import type { ContractType, Currency, Customer, Package, Product, RawMaterial, RawMaterialClosing, SalesResponsible } from "@prisma/client";
+import { createContractTypeAction, createCurrencyAction, createCustomerAction, createPackageAction, createProductAction, createRawMaterialAction, createRawMaterialClosingAction, createSalesResponsibleAction, deleteContractTypeAction, deleteCurrencyAction, deleteCustomerAction, deletePackageAction, deleteProductAction, deleteRawMaterialAction, deleteRawMaterialClosingAction, deleteSalesResponsibleAction, updateContractTypeAction, updateCurrencyAction, updateCustomerAction, updatePackageAction, updateProductAction, updateRawMaterialAction, updateRawMaterialClosingAction, updateSalesResponsibleAction, type ActionState } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { CatalogListResult } from "@/server/catalog-service";
@@ -356,7 +356,7 @@ export function CurrencyManager({ items: currencies, canEdit, canDelete, search,
 }
 
 
-type SimpleItem = ContractType | RawMaterialClosing | RawMaterial;
+type SimpleItem = ContractType | RawMaterialClosing | RawMaterial | SalesResponsible;
 
 function SimpleCatalogForm({ action, placeholder }: { action: (state: ActionState, formData: FormData) => Promise<ActionState>; placeholder: string }) {
   const [state, formAction, pending] = useActionState(action, initialState);
@@ -417,3 +417,5 @@ export function RawMaterialClosingForm() { return <SimpleCatalogForm action={cre
 export function RawMaterialClosingManager(props: CatalogManagerProps<RawMaterialClosing>) { return <SimpleCatalogManager {...props} updateAction={updateRawMaterialClosingAction} deleteAction={deleteRawMaterialClosingAction} label="este Tipo de MP" />; }
 export function RawMaterialForm() { return <SimpleCatalogForm action={createRawMaterialAction} placeholder="Matéria-prima" />; }
 export function RawMaterialManager(props: CatalogManagerProps<RawMaterial>) { return <SimpleCatalogManager {...props} updateAction={updateRawMaterialAction} deleteAction={deleteRawMaterialAction} label="esta matéria-prima" />; }
+export function SalesResponsibleForm() { return <SimpleCatalogForm action={createSalesResponsibleAction} placeholder="Responsável pela venda" />; }
+export function SalesResponsibleManager(props: CatalogManagerProps<SalesResponsible>) { return <SimpleCatalogManager {...props} updateAction={updateSalesResponsibleAction} deleteAction={deleteSalesResponsibleAction} label="este responsável pela venda" />; }

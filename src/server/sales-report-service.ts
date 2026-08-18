@@ -8,7 +8,7 @@ import { auditLog } from "./audit";
 import { appName } from "@/lib/app-config";
 import { formatCnpj, formatDateTimeBr, formatMonthYearBr } from "@/lib/format";
 import { centsToDecimal, formatQuantityScaled, quantityScaledToDecimal, rateScaledToDecimal } from "@/lib/scalars";
-import { buildSalesReportFilterSummary, buildSalesReportOrderBy, buildSalesReportWhere, salesReportFilename, salesReportStatusLabel, salesReportText } from "@/lib/sales-report";
+import { buildSalesReportFilterSummary, buildSalesReportOrderBy, buildSalesReportWhere, salesReportFilename, salesReportRepresentative, salesReportStatusLabel, salesReportText } from "@/lib/sales-report";
 import {
   salesReportFiltersSchema,
   salesReportPageSize,
@@ -22,6 +22,7 @@ export type SalesReportOrder = Prisma.OrderGetPayload<{ select: typeof salesRepo
 export const salesReportOrderSelect = {
   id: true,
   representativeName: true,
+  salesResponsibleNameSnapshot: true,
   createdById: true,
   customerId: true,
   customerName: true,
@@ -197,7 +198,7 @@ export async function exportSalesReportExcel(user: CurrentUser, filters: SalesRe
     sheet.addRow([
       salesReportText(order.sapOrderNumber),
       order.solicitationAt,
-      salesReportText(order.representativeName),
+      salesReportRepresentative(order),
       salesReportText(order.customerName),
       salesReportText(order.city),
       order.cnpj ? formatCnpj(order.cnpj) : "Não informado",
@@ -308,7 +309,7 @@ async function buildPdfBuffer(
     const values = [
       order.sapOrderNumber || "Não informado",
       formatDateTimeBr(order.solicitationAt),
-      salesReportText(order.representativeName),
+      salesReportRepresentative(order),
       salesReportText(order.customerName),
       salesReportText(order.productNameSnapshot),
       salesReportText(order.contractTypeNameSnapshot),

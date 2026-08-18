@@ -54,6 +54,7 @@ export default async function OrderDetailsPage({ params, searchParams }: { param
         <div><p className="text-sm text-muted-foreground">Data da solicitação</p><p>{formatDateTimeBr(order.solicitationAt)}</p></div>
         <div><p className="text-sm text-muted-foreground">Tipo de Contrato</p><p>{order.contractTypeNameSnapshot || "-"}</p></div>
         <div><p className="text-sm text-muted-foreground">Tipo de MP</p><p>{order.rawMaterialClosingNameSnapshot || "-"}</p></div>
+        <div><p className="text-sm text-muted-foreground">Responsável pela venda</p><p>{order.salesResponsibleNameSnapshot || "-"}</p></div>
         <div><p className="text-sm text-muted-foreground">Cliente</p><p>{order.customerName}</p></div>
         <div><p className="text-sm text-muted-foreground">Cidade / CNPJ</p><p>{order.city} - {formatCnpj(order.cnpj)}</p></div>
         <div><p className="text-sm text-muted-foreground">Produto</p><p>{order.productNameSnapshot}</p></div>

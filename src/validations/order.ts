@@ -44,6 +44,8 @@ export const orderCreateSchema = z
   .object({
     contractTypeId: z.string().min(1, "Selecione o tipo de contrato."),
     rawMaterialClosingId: z.string().min(1, "Selecione o Tipo de MP."),
+    salesResponsibleId: z.string().optional(),
+    newSalesResponsibleName: optionalFreeTextSchema(150, 2, "Informe pelo menos 2 caracteres."),
     customerId: z.string().min(1, "Selecione um cliente."),
     newCustomerName: optionalFreeTextSchema(150, 2, "Informe pelo menos 2 caracteres."),
     newCustomerCity: optionalFreeTextSchema(100, 1, "Informe a cidade."),
@@ -86,6 +88,10 @@ export const orderCreateSchema = z
   .refine((data) => data.productId !== NEW_RECORD_VALUE || Boolean(data.newProductUnit), {
     path: ["newProductUnit"],
     message: "Informe a unidade."
+  })
+  .refine((data) => data.salesResponsibleId !== NEW_RECORD_VALUE || Boolean(data.newSalesResponsibleName), {
+    path: ["newSalesResponsibleName"],
+    message: "Informe o responsável pela venda."
   });
 
 export const orderStatusSchema = z

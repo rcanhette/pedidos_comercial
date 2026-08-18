@@ -62,6 +62,10 @@ export function salesReportText(value: string | null | undefined) {
   return value?.trim() || "Não informado";
 }
 
+export function salesReportRepresentative(order: { salesResponsibleNameSnapshot?: string | null; representativeName?: string | null }) {
+  return order.salesResponsibleNameSnapshot?.trim() || order.representativeName?.trim() || "Não informado";
+}
+
 export function buildSalesReportFilterSummary(filters: SalesReportFiltersInput, labels?: {
   customer?: string;
   product?: string;

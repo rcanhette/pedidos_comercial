@@ -46,6 +46,7 @@ export const sidebarMenu: SidebarMenuEntry[] = [
       { type: "item", href: "/products", label: "Produtos", icon: "package", permission: "PRODUTO_VISUALIZAR" },
       { type: "item", href: "/contract-types", label: "Tipos de Contrato", icon: "file-text", permission: "TIPO_CONTRATO_VISUALIZAR" },
       { type: "item", href: "/raw-material-closings", label: "Tipos de MP", icon: "clipboard-list", permission: "FECHAMENTO_MP_VISUALIZAR" },
+      { type: "item", href: "/sales-responsibles", label: "Responsáveis pela Venda", icon: "users", permission: "RESPONSAVEL_VENDA_VISUALIZAR" },
       { type: "item", href: "/raw-materials", label: "Matérias-Primas", icon: "package", permission: "MATERIA_PRIMA_VISUALIZAR" },
       { type: "item", href: "/packages", label: "Embalagens", icon: "package", permission: "EMBALAGEM_VISUALIZAR" },
       { type: "item", href: "/currencies", label: "Moedas", icon: "coins", permission: "MOEDA_VISUALIZAR" },

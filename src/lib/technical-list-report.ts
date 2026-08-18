@@ -34,8 +34,8 @@ export function technicalListReportText(value: string | null | undefined) {
   return value?.trim() || "Não informado";
 }
 
-export function technicalListReportRepresentative(item: { order: { representativeName?: string | null; createdBy?: { fullName: string } | null } }) {
-  return item.order.representativeName?.trim() || item.order.createdBy?.fullName?.trim() || "Não informado";
+export function technicalListReportRepresentative(item: { order: { salesResponsibleNameSnapshot?: string | null; representativeName?: string | null; createdBy?: { fullName: string } | null } }) {
+  return item.order.salesResponsibleNameSnapshot?.trim() || item.order.representativeName?.trim() || item.order.createdBy?.fullName?.trim() || "Não informado";
 }
 
 export function technicalListReportCommission(item: { order: { commissionUsdCents?: number | null } }) {

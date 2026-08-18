@@ -7,7 +7,7 @@ import { formatZodFieldErrors, orderCreateSchema, orderStatusSchema, technicalLi
 import { normalizeFreeText } from "@/validations/common";
 import { login, destroySession, requireUser, verifyLoginChallenge } from "@/server/auth";
 import { createOrder, changeOrderStatus, recordLogout, updateOrder, updateOrderTechnicalList } from "@/server/order-service";
-import { createContractType, createCurrency, createCustomer, createPackage, createProduct, createRawMaterial, createRawMaterialClosing, createRawMaterialQuick, deleteContractType, deleteCurrency, deleteCustomer, deletePackage, deleteProduct, deleteRawMaterial, deleteRawMaterialClosing, updateContractType, updateCurrency, updateCustomer, updatePackage, updateProduct, updateRawMaterial, updateRawMaterialClosing } from "@/server/catalog-service";
+import { createContractType, createCurrency, createCustomer, createPackage, createProduct, createRawMaterial, createRawMaterialClosing, createRawMaterialQuick, createSalesResponsible, deleteContractType, deleteCurrency, deleteCustomer, deletePackage, deleteProduct, deleteRawMaterial, deleteRawMaterialClosing, deleteSalesResponsible, updateContractType, updateCurrency, updateCustomer, updatePackage, updateProduct, updateRawMaterial, updateRawMaterialClosing, updateSalesResponsible } from "@/server/catalog-service";
 import { bulkImportConfig, importBulkWorkbook, parseBulkImportKind, validateBulkImportWorkbook, type BulkImportValidationResult } from "@/server/bulk-import-service";
 import { createUser, deleteUser, updateOwnProfile, updateUser } from "@/server/user-service";
 
@@ -24,6 +24,7 @@ export type BulkImportActionState = {
 const uppercaseValueFields = new Set([
   "newCustomerName",
   "newCustomerCity",
+  "newSalesResponsibleName",
   "newProductName",
   "newProductUnit",
   "newProductDescription",
@@ -57,6 +58,7 @@ function orderServiceFieldErrors(error: unknown): Record<string, string[]> | und
     ["Informe os dados do novo produto.", "newProductName"],
     ["Tipo de contrato ativo não encontrado.", "contractTypeId"],
     ["Tipo de MP ativo não encontrado.", "rawMaterialClosingId"],
+    ["Responsável pela venda ativo não encontrado.", "salesResponsibleId"],
     ["Embalagem ativa não encontrada.", "packageId"],
     ["Embalagem não encontrada.", "packageId"],
     ["Moeda ativa não encontrada.", "currencyId"],
@@ -319,6 +321,20 @@ export async function updateRawMaterialAction(id: string, _state: ActionState, f
 }
 
 export async function deleteRawMaterialAction(id: string) { const user = await requireUser(); await deleteRawMaterial(user, id); revalidatePath("/raw-materials"); }
+
+export async function createSalesResponsibleAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  try { await createSalesResponsible(user, formData); revalidatePath("/sales-responsibles"); return { ok: true, message: "Responsável pela venda salvo." }; }
+  catch (error) { return { ok: false, message: error instanceof Error ? error.message : "Erro ao salvar responsável pela venda." }; }
+}
+
+export async function updateSalesResponsibleAction(id: string, _state: ActionState, formData: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  try { await updateSalesResponsible(user, id, formData); revalidatePath("/sales-responsibles"); return { ok: true, message: "Responsável pela venda atualizado." }; }
+  catch (error) { return { ok: false, message: error instanceof Error ? error.message : "Erro ao atualizar responsável pela venda." }; }
+}
+
+export async function deleteSalesResponsibleAction(id: string) { const user = await requireUser(); await deleteSalesResponsible(user, id); revalidatePath("/sales-responsibles"); }
 
 export async function validateBulkImportAction(_state: BulkImportActionState, formData: FormData): Promise<BulkImportActionState> {
   const user = await requireUser();

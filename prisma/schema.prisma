@@ -179,6 +179,18 @@ model RawMaterial {
   @@index([name])
 }
 
+model SalesResponsible {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+
+  @@index([active])
+  @@index([name])
+}
+
 model Package {
   id             String   @id @default(cuid())
   name           String   @unique
@@ -223,6 +235,8 @@ model Order {
   representativeName             String
   createdById                    String
   customerId                     String?
+  salesResponsibleId             String?
+  salesResponsibleNameSnapshot   String?
   contractTypeId                 String?
   contractTypeNameSnapshot       String?
   rawMaterialClosingId           String?
@@ -260,6 +274,7 @@ model Order {
   createdBy                      User                 @relation("OrderCreator", fields: [createdById], references: [id])
   lastChangedBy                  User                 @relation("OrderLastChangedBy", fields: [lastChangedById], references: [id])
   customer                       Customer?            @relation(fields: [customerId], references: [id])
+  salesResponsible               SalesResponsible?    @relation(fields: [salesResponsibleId], references: [id])
   product                        Product              @relation(fields: [productId], references: [id])
   package                        Package              @relation(fields: [packageId], references: [id])
   currency                       Currency             @relation(fields: [currencyId], references: [id])
@@ -273,6 +288,7 @@ model Order {
   @@index([sapOrderNumber])
   @@index([createdById])
   @@index([customerId])
+  @@index([salesResponsibleId])
   @@index([contractTypeId])
   @@index([rawMaterialClosingId])
   @@index([representativeId])

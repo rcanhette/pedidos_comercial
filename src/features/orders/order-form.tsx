@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
-import type { ContractType, Currency, Customer, Order, OrderRawMaterial, Package, Product, RawMaterial, RawMaterialClosing } from "@prisma/client";
+import type { ContractType, Currency, Customer, Order, OrderRawMaterial, Package, Product, RawMaterial, RawMaterialClosing, SalesResponsible } from "@prisma/client";
 import { Save } from "lucide-react";
 import { createOrderAction, createRawMaterialQuickAction, updateOrderAction, type ActionState } from "@/app/actions";
 import { NEW_RECORD_VALUE } from "@/validations/order";
@@ -17,10 +17,12 @@ const initialState: ActionState = { ok: false };
 type OrderWithItems = Order & { technicalClosingItems?: OrderRawMaterial[] };
 type TechnicalRow = { key: string; rawMaterialId: string; quantityKg: string; price: string };
 type MaterialOption = Pick<RawMaterial, "id" | "name" | "active">;
-const emptyRecentOptionIds: CatalogRecentOptionIds = { customers: [], products: [], packages: [], currencies: [], contractTypes: [], rawMaterialClosings: [], rawMaterials: [] };
+const emptyRecentOptionIds: CatalogRecentOptionIds = { customers: [], products: [], packages: [], currencies: [], contractTypes: [], rawMaterialClosings: [], rawMaterials: [], salesResponsibles: [] };
 type OrderFormValues = Record<
   | "contractTypeId"
   | "rawMaterialClosingId"
+  | "salesResponsibleId"
+  | "newSalesResponsibleName"
   | "customerId"
   | "newCustomerName"
   | "newCustomerCity"
@@ -46,6 +48,8 @@ type OrderFormValues = Record<
 const formFieldOrder = [
   "contractTypeId",
   "rawMaterialClosingId",
+  "salesResponsibleId",
+  "newSalesResponsibleName",
   "customerId",
   "newCustomerName",
   "newCustomerCity",
@@ -137,6 +141,8 @@ function initialOrderValues(order?: OrderWithItems): OrderFormValues {
   return {
     contractTypeId: order?.contractTypeId ?? "",
     rawMaterialClosingId: order?.rawMaterialClosingId ?? "",
+    salesResponsibleId: order?.salesResponsibleId ?? "",
+    newSalesResponsibleName: "",
     customerId: order?.customerId ?? "",
     newCustomerName: "",
     newCustomerCity: "",
@@ -220,6 +226,7 @@ export function OrderForm({
   currencies,
   contractTypes,
   rawMaterialClosings,
+  salesResponsibles,
   rawMaterials,
   recentOptionIds = emptyRecentOptionIds,
   canCreateRawMaterial,
@@ -232,6 +239,7 @@ export function OrderForm({
   currencies: Currency[];
   contractTypes: ContractType[];
   rawMaterialClosings: RawMaterialClosing[];
+  salesResponsibles: SalesResponsible[];
   rawMaterials: RawMaterial[];
   recentOptionIds?: CatalogRecentOptionIds;
   canCreateRawMaterial: boolean;
@@ -254,6 +262,7 @@ export function OrderForm({
   });
   const isNewCustomer = formValues.customerId === NEW_RECORD_VALUE;
   const isNewProduct = formValues.productId === NEW_RECORD_VALUE;
+  const isNewSalesResponsible = formValues.salesResponsibleId === NEW_RECORD_VALUE;
   const orderQuantityScaled = safeQuantityInputToScaled(formValues.quantity);
   const customerOptions = useMemo(() => customers.map(customerOption), [customers]);
   const productOptions = useMemo(() => products.map(namedOption), [products]);
@@ -261,6 +270,7 @@ export function OrderForm({
   const currencyOptions = useMemo(() => currencies.map(currencyOption), [currencies]);
   const contractTypeOptions = useMemo(() => contractTypes.map(namedOption), [contractTypes]);
   const rawMaterialClosingOptions = useMemo(() => rawMaterialClosings.map(namedOption), [rawMaterialClosings]);
+  const salesResponsibleOptions = useMemo(() => salesResponsibles.map(namedOption), [salesResponsibles]);
   const materialOptions = useMemo(() => materials.map(namedOption), [materials]);
   const totals = useMemo(() => {
     return technicalRows.reduce(
@@ -334,7 +344,7 @@ export function OrderForm({
 
       <section className="rounded-lg border bg-background p-5">
         <h2 className="mb-4 text-lg font-semibold">1. Definir Nome</h2>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           <label className="text-sm font-medium">Tipo de Contrato
             <SearchableSelect name="contractTypeId" value={formValues.contractTypeId} onChange={(value) => setValue("contractTypeId", value)} options={contractTypeOptions} recentIds={recentOptionIds.contractTypes} placeholder="Digite o tipo de contrato" fieldError="contractTypeId" error={Boolean(state.fieldErrors?.contractTypeId)} required />
             <FieldError errors={state.fieldErrors?.contractTypeId} />
@@ -343,6 +353,11 @@ export function OrderForm({
             <SearchableSelect name="rawMaterialClosingId" value={formValues.rawMaterialClosingId} onChange={(value) => setValue("rawMaterialClosingId", value)} options={rawMaterialClosingOptions} recentIds={recentOptionIds.rawMaterialClosings} placeholder="Digite o tipo de MP" fieldError="rawMaterialClosingId" error={Boolean(state.fieldErrors?.rawMaterialClosingId)} required />
             <FieldError errors={state.fieldErrors?.rawMaterialClosingId} />
           </label>
+          <label className="text-sm font-medium">Responsável pela venda
+            <SearchableSelect name="salesResponsibleId" value={formValues.salesResponsibleId} onChange={(value) => setValue("salesResponsibleId", value)} options={salesResponsibleOptions} recentIds={recentOptionIds.salesResponsibles} placeholder="Digite o responsável" newOption={{ value: NEW_RECORD_VALUE, label: "Novo responsável" }} fieldError="salesResponsibleId" error={Boolean(state.fieldErrors?.salesResponsibleId)} />
+            <FieldError errors={state.fieldErrors?.salesResponsibleId} />
+          </label>
+          {isNewSalesResponsible ? <div className="rounded-md border bg-muted/30 p-4 md:col-span-3"><label className="text-sm font-medium">Nome<Input name="newSalesResponsibleName" data-field-error="newSalesResponsibleName" className={errorClass(state.fieldErrors?.newSalesResponsibleName)} value={formValues.newSalesResponsibleName} onChange={(event) => setValue("newSalesResponsibleName", event.target.value)} normalizeUppercase required={isNewSalesResponsible} /><FieldError errors={state.fieldErrors?.newSalesResponsibleName} /></label></div> : null}
         </div>
       </section>
 

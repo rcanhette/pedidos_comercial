@@ -1,6 +1,6 @@
 import fs from "fs";
 import { describe, expect, it } from "vitest";
-import { buildSalesReportFilterSummary, buildSalesReportWhere, salesReportFilename, type SalesReportUserScope } from "@/lib/sales-report";
+import { buildSalesReportFilterSummary, buildSalesReportWhere, salesReportFilename, salesReportRepresentative, type SalesReportUserScope } from "@/lib/sales-report";
 import { salesReportQuerySchema } from "@/validations/sales-report";
 
 function parseSalesReportQuery(input: URLSearchParams) {
@@ -102,5 +102,11 @@ describe("relatório de vendas", () => {
     expect(service).toContain("freightText: true");
     expect(service).not.toContain('"Número do Pedido"');
     expect(service).not.toContain('"ID do Pedido"');
+  });
+
+  it("exibe responsável pela venda antes do usuário que gerou o pedido", () => {
+    expect(salesReportRepresentative({ salesResponsibleNameSnapshot: "ANA VENDAS", representativeName: "USUARIO CRIADOR" })).toBe("ANA VENDAS");
+    expect(salesReportRepresentative({ salesResponsibleNameSnapshot: null, representativeName: "USUARIO CRIADOR" })).toBe("USUARIO CRIADOR");
+    expect(salesReportRepresentative({ salesResponsibleNameSnapshot: "", representativeName: "" })).toBe("Não informado");
   });
 });

@@ -13,7 +13,7 @@ export default async function EditOrderPage({ params }: { params: Promise<{ id: 
   const canEdit = user.permissions.includes("PEDIDO_EDITAR_TODOS") ? order.status !== "CANCELADO" : user.permissions.includes("PEDIDO_EDITAR_PROPRIOS") && order.createdById === user.id && order.status === "RECEBIDO";
   if (!canEdit) notFound();
 
-  const { customers, products, packages, currencies, contractTypes, rawMaterialClosings, rawMaterials, recentOptionIds } = await catalogOptions({ includeInactive: true });
+  const { customers, products, packages, currencies, contractTypes, rawMaterialClosings, rawMaterials, salesResponsibles, recentOptionIds } = await catalogOptions({ includeInactive: true });
 
   return (
     <div className="space-y-6">
@@ -21,7 +21,7 @@ export default async function EditOrderPage({ params }: { params: Promise<{ id: 
         <h1 className="text-2xl font-semibold">Editar pedido {order.number}</h1>
         <p className="text-sm text-muted-foreground">Atualize os dados comerciais do pedido.</p>
       </div>
-      <OrderForm customers={customers} products={products} packages={packages} currencies={currencies} contractTypes={contractTypes} rawMaterialClosings={rawMaterialClosings} rawMaterials={rawMaterials} recentOptionIds={recentOptionIds} order={order} canCreateRawMaterial={user.permissions.includes("MATERIA_PRIMA_CRIAR")} canEditTechnicalList={false} />
+      <OrderForm customers={customers} products={products} packages={packages} currencies={currencies} contractTypes={contractTypes} rawMaterialClosings={rawMaterialClosings} salesResponsibles={salesResponsibles} rawMaterials={rawMaterials} recentOptionIds={recentOptionIds} order={order} canCreateRawMaterial={user.permissions.includes("MATERIA_PRIMA_CRIAR")} canEditTechnicalList={false} />
     </div>
   );
 }
